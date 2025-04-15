@@ -19,18 +19,17 @@ class LicenseController extends AbstractController
         $license = $licenseRepository->findOneBy(['licenseKey' => $licenseKey]);
 
         if (!$license) {
-            return $this->json(['valid' => false, 'message' => 'Invalid license key.']);
+            return $this->json(['status' => 'invalid', 'message' => 'Invalid license key.']);
         }
 
         if ($license->getExpiresAt() < new \DateTime()) {
-            return $this->json(['valid' => false, 'message' => 'License expired.']);
+            return $this->json(['status' => 'invalid', 'message' => 'License expired.']);
         }
 
         if ($license->getClientUrl() !== $clientUrl) {
-            return $this->json(['valid' => false, 'message' => 'Domain mismatch.']);
+            return $this->json(['status' => 'invalid', 'message' => 'Domain mismatch.']);
         }
 
-        return $this->json(['valid' => true, 'message' => 'License valid.']);
+        return $this->json(['status' => 'valid', 'message' => 'License valid.']);
     }
 }
-
