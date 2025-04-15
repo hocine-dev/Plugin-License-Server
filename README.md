@@ -36,8 +36,10 @@ Grâce à ce serveur, les développeurs peuvent gérer et contrôler l'accès à
 ```json
 {
   "status": "valid",
-  "message": "License valid."
+  "message": "License valid.",
+  "signature": "hash_hmac_sha256_signature"
 }
+
 ```
 
 **Réponse si la licence est invalide ou expirée :**
@@ -45,11 +47,14 @@ Grâce à ce serveur, les développeurs peuvent gérer et contrôler l'accès à
 ```json
 {
   "status": "invalid",
-  "message": "Invalid license key or domain mismatch."
+  "message": "Invalid license key.",
+  "signature": "hash_hmac_sha256_signature"
 }
 ```
 
 ---
+💡 Remarque
+La signature HMAC empêche la falsification des réponses par un tiers et renforce la sécurité des communications entre votre plugin WordPress et ce serveur.
 
 ## 💡 Pourquoi utiliser ce serveur ?
 
