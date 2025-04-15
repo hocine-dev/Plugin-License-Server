@@ -1,5 +1,6 @@
 parameters:
     license.secret_key: '%env(LICENSE_SECRET_KEY)%'
+    private_key_path: '%env(PRIVATE_KEY_PATH)%'
 
 services:
     _defaults:
@@ -15,4 +16,4 @@ services:
 
     App\Controller\LicenseController:
         arguments:
-            $secretKey: '%license.secret_key%'
+            $privateKeyPath: '%private_key_path%'

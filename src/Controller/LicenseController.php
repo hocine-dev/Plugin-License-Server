@@ -10,50 +10,60 @@ use App\Repository\LicenseRepository;
 
 class LicenseController extends AbstractController
 {
-    private string $secretKey;
+    private string $privateKeyPath;
 
-    // On injecte la clé secrète depuis services.yaml
-    public function __construct(string $secretKey)
+    public function __construct(string $privateKeyPath)
     {
-        $this->secretKey = $secretKey;
+        // Chemin vers la clé privée
+        $this->privateKeyPath = $privateKeyPath;
     }
 
     #[Route('/api/check-license', name: 'check_license', methods: ['POST'])]
     public function checkLicense(Request $request, LicenseRepository $licenseRepository): JsonResponse
     {
         $licenseKey = $request->get('license_key');
-        $clientUrl  = $request->get('site_url');
+        $clientUrl = $request->get('site_url');
 
-        // Recherche de la licence en base de données
         $license = $licenseRepository->findOneBy(['licenseKey' => $licenseKey]);
 
         if (!$license) {
-            return $this->signedJson(['status' => 'invalid', 'message' => 'Invalid license key.']);
+            return $this->signResponse([
+                'status' => 'invalid',
+                'message' => 'Invalid license key.'
+            ]);
         }
 
-        // Vérification de la date d’expiration
         if ($license->getExpiresAt() < new \DateTime()) {
-            return $this->signedJson(['status' => 'invalid', 'message' => 'License expired.']);
+            return $this->signResponse([
+                'status' => 'invalid',
+                'message' => 'License expired.'
+            ]);
         }
 
-        // Vérification du nom de domaine
         if ($license->getClientUrl() !== $clientUrl) {
-            return $this->signedJson(['status' => 'invalid', 'message' => 'Domain mismatch.']);
+            return $this->signResponse([
+                'status' => 'invalid',
+                'message' => 'Domain mismatch.'
+            ]);
         }
 
-        // Tout est valide !
-        return $this->signedJson(['status' => 'valid', 'message' => 'License valid.']);
+        return $this->signResponse([
+            'status' => 'valid',
+            'message' => 'License valid.'
+        ]);
     }
 
-    /**
-     * Cette méthode ajoute une signature HMAC SHA-256 au tableau de réponse
-     * pour que le client (WordPress) puisse vérifier l’authenticité.
-     */
-    private function signedJson(array $data): JsonResponse
+    private function signResponse(array $data): JsonResponse
     {
-        $signature = hash_hmac('sha256', json_encode($data, JSON_UNESCAPED_UNICODE), $this->secretKey);
-        $data['signature'] = $signature;
+        $privateKey = file_get_contents($this->privateKeyPath);
+        $dataString = json_encode($data);
+        $signature = '';
 
-        return $this->json($data);
+        // Signature avec clé privée RSA
+        openssl_sign($dataString, $signature, $privateKey, OPENSSL_ALGO_SHA256);
+
+        $data['signature'] = base64_encode($signature);
+
+        return new JsonResponse($data);
     }
 }
