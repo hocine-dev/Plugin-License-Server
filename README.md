@@ -1,7 +1,3 @@
-Parfait ! Voici le **README complet** en un seul bloc, prêt à copier-coller directement dans GitHub — sans séparations ni interruptions :
-
----
-
 # 🔐 Symfony License Server for WordPress Plugins
 
 Ce projet est un serveur d’activation de licences développé en **Symfony**.  
